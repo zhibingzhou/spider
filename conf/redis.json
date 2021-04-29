@@ -1,0 +1,13 @@
+{
+	"network":"tcp",
+	"host":"127.0.0.1",
+	"port":"6379",
+	"auth":"foobared",
+	"db":"0",
+	"pre_key":"pare",
+	"connect_time":"+5s",
+	"read_time":"+5s",
+	"life_time":"+5s",
+	"max_open":"50",
+	"max_idle":"5"
+}
