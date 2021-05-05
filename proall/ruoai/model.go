@@ -14,6 +14,5 @@ var (
 	RuoaiUrl     = "https://www.ruoai.cn/location/"
 	Port         = 9515
 	SeleniumPath = `D:\pc\chromedriver.exe`
+	RuoaiDomain  = "https://www.ruoai.cn"
 )
-
-

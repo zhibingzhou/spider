@@ -1,9 +1,13 @@
 package main
 
 import (
-	"test/proall"
+	"test/model"
+	"test/router"
 )
 
 func main() {
-	proall.NewProcessor().Register().Boot()
+	model.Delcash()
+	//go proall.NewProcessor().Register().Boot()
+	router.Router.Run(":8082")
 }
+ 

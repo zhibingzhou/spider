@@ -5,12 +5,17 @@ type Province struct {
 	Title string `json:"title" gorm:"title"`
 }
 
+type ProvinceCity struct {
+	Title string
+	City  []City
+}
+
 func ProvinceCreate(province string) error {
 	var rc Province
 	rc = Province{
 		Title: province,
 	}
-	err := MysqlALL["ruoai"].Create(&rc).Error
+	err := MysqlALL["ruoai"].DB.Create(&rc).Error
 	return err
 }
 
@@ -22,7 +27,7 @@ func GetProvinceFromRedis(proName string) (map[string]string, error) {
 	if err == nil && len(dMap["id"]) < 1 {
 		var province Province
 
-		err = MysqlALL["ruoai"].Table("province").Where("title = ?", proName).First(&province).Error
+		err = MysqlALL["ruoai"].DB.Table("province").Where("title = ?", proName).First(&province).Error
 		if err == nil && province.Id > 0 {
 			// 查询数据库 得 map
 			val := map[string]interface{}{}

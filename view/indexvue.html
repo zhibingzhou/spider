@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <title>{{.title}}</title>
+</head>
+
+<body>
+    <div id="app">
+        <div>
+
+            <div class="search-term">
+                <el-form :inline="true" :model="searchInfo" class="demo-form-inline">
+
+                    <el-form-item label="性别">
+                        <el-select placeholder="请选择" v-model="searchInfo.sex">
+                            <el-option :value="1" label="男"></el-option>
+                            <el-option :value="0" label="女"></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="薪水">
+                        <el-select placeholder="请选择" v-model="searchInfo.salary">
+                            <el-option :value="0" label="5千以下"></el-option>
+                            <el-option :value="1" label="5千-1万"></el-option>
+                            <el-option :value="2" label="1万-2万"></el-option>
+                            <el-option :value="3" label="2万以上"></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="学历">
+                        <el-select filterable clearable placeholder="请输入学历" v-model="searchInfo.education">
+                            <el-option :key="item.id" :label="item.title" :value="item.id"
+                                v-for="item in educationData">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="年龄">
+                        <el-input v-model="searchInfo.age" placeholder="最大年龄"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="当前城市">
+                        <el-input v-model="cityName"></el-input>
+                    </el-form-item>
+
+
+                    <el-form-item>
+                        <el-button @click="onSubmit" type="primary">查询</el-button>
+                        <el-button @click="citychoose" type="primary">城市选择</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+
+
+            <el-table :data="tableData" ref="multipleTable" stripe style="width: 100%" tooltip-effect="dark">
+                <el-table-column label="ID" prop="Id"></el-table-column>
+                <el-table-column label="头像">
+                    <template slot-scope="scope">
+                        <el-image style="width: 100px; height: 80px" :src="scope.row.Url_image" fit="contain"
+                            :preview-src-list="getImageList(scope.row.Url_image)" />
+                    </template>
+                </el-table-column>
+                <el-table-column label="用户名" prop="Nickname"></el-table-column>
+                <el-table-column label="性别" prop="Gender"></el-table-column>
+                <el-table-column label="城市" prop="City_title"></el-table-column>
+                <el-table-column label="学历" prop="Education_title"></el-table-column>
+                <el-table-column label="出身日期" prop="Birthday_time"></el-table-column>
+                <el-table-column label="身高" prop="Height"></el-table-column>
+                <el-table-column label="体重" prop="Weight"></el-table-column>
+                <el-table-column label="婚姻" prop="Married"></el-table-column>
+                <el-table-column label="购房" prop="House"></el-table-column>
+                <el-table-column label="职业" prop="Work_title"></el-table-column>
+                <el-table-column label="家乡" prop="Hometown_title"></el-table-column>
+                <el-table-column label="收入" prop="Salary"></el-table-column>
+                <el-table-column label="爱情宣言" prop="Title"></el-table-column>
+            </el-table>
+
+            <el-pagination :current-page="searchInfo.page" :page-size="searchInfo.pageSize"
+                :page-sizes="[10 , 20, 50, 100]" :style="{ float: 'right', padding: '20px' }" :total="searchInfo.total"
+                @current-change="handleCurrentChange" @size-change="handleSizeChange"
+                layout="total, sizes, prev, pager, next, jumper"></el-pagination>
+        </div>
+
+        <el-dialog :visible.sync="cityDiolag" custom-class="user-dialog" :title="dialogTitlethis" width="1000px">
+            <el-form>
+                {{range .all}}
+                <el-form-item label="" label-width="10px" prop="pay_id">
+                    <a> {{.Title}} </a>
+                    {{range .City}}
+                    <el-link type="primary" @click="handleClick({{.Id}})" value="{{.Id}}">
+                        {{.Title}}
+                    </el-link>
+                    {{end}}
+                </el-form-item>
+                {{end}}
+
+            </el-form>
+        </el-dialog>
+
+
+    </div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+
+
+<script>
+
+    new Vue({
+        el: '#app',
+
+        data: {
+            visible: false,
+            searchInfo: {
+                sex: 0,
+                city: 0,
+                pageSize: 10,
+                page: 1,
+                salary: '',
+                education: '',
+                age: '',
+                total: 0,
+            },
+            cityName: '所有城市',
+            educationData: [],
+            tableData: [],
+            cityDiolag: false,
+            dialogTitlethis: "城市选择",
+        },
+        methods: {
+            async handleClick(val) {
+                this.searchInfo.city = val
+                var result = await this.getData()
+                if (result.code == 200) {
+                    this.tableData = result.data
+                    this.searchInfo.total = result.count
+                    if (this.tableData.length > 0) {
+                        this.cityName = this.tableData[0].City_title
+                    }
+                }
+                this.cityDiolag = false
+            },
+            citychoose() {
+                this.cityDiolag = true
+                console.log("hgere")
+            },
+            getImageList(url) {
+                var imgelist = [url]
+                return imgelist
+            },
+            async onSubmit() {
+                console.log("onSubmit")
+                var result = await this.getData()
+                if (result.code == 200) {
+                    this.tableData = result.data
+                    this.searchInfo.total = result.count
+                }
+            },
+            async getData() {
+                var data = Object
+                await axios.post('/ruoai/list_ruoai', this.searchInfo)
+                    .then(function (response) {
+                        data = response.data
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                console.log("getData", data)
+                return data
+            },
+            // 
+            async getEducation() {
+                var data = Object
+                await axios.post('/ruoai/getEducation', {})
+                    .then(function (response) {
+                        data = response.data
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                console.log("getEducation", data)
+                return data
+            },
+            //分页
+            async handleSizeChange(val) {
+                this.searchInfo.pageSize = val
+                var result = await this.getData()
+                if (result.code == 200) {
+                    this.tableData = result.data
+                    this.searchInfo.total = result.count
+                }
+            },
+            async handleCurrentChange(val) {
+                this.searchInfo.page = val
+                var result = await this.getData()
+                if (result.code == 200) {
+                    this.tableData = result.data
+                    this.searchInfo.total = result.count
+                }
+            },
+        },
+        async created() {
+            console.log("here1")
+            var result = await this.getData()
+            if (result.code == 200) {
+                this.tableData = result.data
+                this.searchInfo.total = result.count
+            }
+            var result = await this.getEducation()
+            if (result.code == 200) {
+                this.educationData = result.data
+            }
+        }
+
+
+    })
+</script>
+
+</html>

@@ -2,13 +2,18 @@ package model
 
 import "github.com/jinzhu/gorm"
 
-var MysqlALL map[string]*gorm.DB
+var MysqlALL map[string]Mysql
+
+type Mysql struct {
+	DB *gorm.DB
+}
 
 func init() {
-	
-	MysqlALL["ruoai"] = nil
+	MysqlALL = make(map[string]Mysql)
+	MysqlALL["ruoai"] = Mysql{}
 
 	for key, _ := range MysqlALL {
-		MysqlALL[key] = ReloadConfSQL("", key)
+		db := ReloadConfSQL("", key)
+		MysqlALL[key] = Mysql{DB: db}
 	}
 }

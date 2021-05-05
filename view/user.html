@@ -1,0 +1,90 @@
+<template>
+    <div>
+        <div class="search-term">
+            <el-form :inline="true" :model="searchInfo" class="demo-form-inline">
+
+                <el-form-item label="性别">
+                    <el-select placeholder="请选择" v-model="searchInfo.sex">
+                        <el-option :value="1" label="男"></el-option>
+                        <el-option :value="0" label="女"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item>
+                    <el-button @click="onSubmit" type="primary">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <el-table :data="tableData" border ref="multipleTable" stripe style="width: 100%" tooltip-effect="dark">
+            <el-table-column label="ID" prop="Id"></el-table-column>
+            <el-table-column label="头像" align="center">
+                <template slot-scope="scope">
+                    <el-image style="width: 100px; height: 80px" :src="scope.row.Url_image" fit="contain"
+                        :preview-src-list="getImageList(scope.row.Url_image)" />
+                </template>
+            </el-table-column>
+            <el-table-column label="用户名" prop="Nickname"></el-table-column>
+            <el-table-column label="性别" prop="Gender"></el-table-column>
+            <el-table-column label="城市" prop="City_title"></el-table-column>
+            <el-table-column label="学历" prop="Education_title"></el-table-column>
+            <el-table-column label="出身日期" prop="Birthday_time"></el-table-column>
+            <el-table-column label="身高" prop="Height"></el-table-column>
+            <el-table-column label="体重" prop="Weight"></el-table-column>
+            <el-table-column label="婚姻" prop="Married"></el-table-column>
+            <el-table-column label="购房" prop="House"></el-table-column>
+            <el-table-column label="职业" prop="Work_title"></el-table-column>
+            <el-table-column label="家乡" prop="Hometown_title"></el-table-column>
+            <el-table-column label="收入" prop="Salary"></el-table-column>
+            <el-table-column label="爱情宣言" prop="Title"></el-table-column>
+        </el-table>
+    </div>
+</template>
+
+
+<script>
+
+    export default {
+        el: 'user',
+        data() {
+            return {
+                visible: false,
+                searchInfo: {
+                    sex: '',
+                },
+                tableData: [
+                    { "Nickname": "123" },
+                ],
+            }
+        },
+        methods: {
+            getImageList(url) {
+                var imgelist = [url]
+                return imgelist
+            },
+            onSubmit() {
+                console.log("onSubmit")
+            },
+            async getData() {
+                axios.post('/api/list_ruoai', {
+                    firstName: 'Fred',
+                    lastName: 'Flintstone'
+                })
+                    .then(function (response) {
+                        if (response.data.code == 200) {
+                            this.tableData = response.data.data
+                            console.log("here", this.tableData)
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+
+            }
+        },
+        async created() {
+            console.log("here")
+            this.getData()
+            console.log("here", this.tableData)
+        }
+    }
+
+</script>

@@ -2,7 +2,6 @@ package ruoai
 
 import (
 	"fmt"
-	"test/model"
 )
 
 type RuoAiManagerChannel struct {
@@ -10,7 +9,7 @@ type RuoAiManagerChannel struct {
 	Request    chan Request
 	Requests   chan chan Request
 	Result     chan ParseResult
-	WriteMysql chan model.User
+	WriteMysql chan int
 }
 
 type Wokers struct {
@@ -25,7 +24,7 @@ func NewRuoAiManagerChannel(count int) *RuoAiManagerChannel {
 		Request:    make(chan Request),
 		Requests:   make(chan chan Request),
 		Result:     make(chan ParseResult),
-		WriteMysql: make(chan model.User),
+		WriteMysql: make(chan int, count),
 	}
 }
 
@@ -60,7 +59,14 @@ func (r *RuoAiManagerChannel) Run() {
 			case requestch <- request:
 				ArryReq = ArryReq[1:]
 				ArryReqs = ArryReqs[1:]
+
+				if len(ArryReq) == 0 {
+					fmt.Println("任务结束")
+					r.WriteMysql <- 1
+				}
+
 			}
+
 		}
 
 	}()
