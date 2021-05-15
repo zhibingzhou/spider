@@ -2,6 +2,7 @@ package xinhe
 
 type Request struct {
 	Url      string
+	Type     int
 	PareFunc func(string, int) PareResult
 }
 
@@ -10,7 +11,7 @@ type PareResult struct {
 	Item     interface{}
 }
 
-func (r Request) Do(chan_number int) PareResult {
-	pareResult := r.PareFunc(r.Url, chan_number)
+func (r Request) Do() PareResult {
+	pareResult := r.PareFunc("https://xinghe.tv"+r.Url, r.Type)
 	return pareResult
 }

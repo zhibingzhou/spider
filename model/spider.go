@@ -1,61 +1,11 @@
 package model
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
-
-	"github.com/go-redis/redis"
 )
 
-//爬虫去重 ，添加的是有序集合
-func PutCityData(url string) error {
-
-	// 添加有序集合 插入成功为1 插入失败为0,去重用
-	value, err := pool.ZAdd("city_spider", redis.Z{Score: 10, Member: url}).Result()
-	fmt.Println("城市url添加", url, err)
-
-	if value == 1 { //说明没有这个key
-		onlyid := wxhead + GetKey(16)
-		//存对应的data到有序集合
-		value, err := pool.ZAdd("get_data", redis.Z{Score: 10, Member: onlyid}).Result()
-		fmt.Println(value, err)
-		ma := map[string]interface{}{}
-		ma["url"] = url
-		//再存入map参数
-		err = pool.HMSet(onlyid, ma).Err()
-		if err != nil {
-			fmt.Println("PutCityData", err)
-		}
-	}
-	return err
-}
-
-func GetCityData() (url_list []string, err error) {
-
-	//设置最大和最小值  返回有序集合的所有元素和分数
-	vals, err := pool.ZRangeByScoreWithScores("get_data", redis.ZRangeBy{
-		Min: "0",
-		Max: "50",
-		Offset: 0,
-		Count: 1,
-	}).Result()
-
-	for _, value := range vals {
-		key := value.Member.(string)
-		dMap, err := pool.HGetAll(key).Result()
-		if err != nil {
-			return url_list, err
-		}
-		url_list = append(url_list, dMap["url"])
-		pool.Del(key).Err()
-		//删除集合中的一个指定元素
-		pool.ZRem("get_data", key)
-	}
-
-	return url_list, err
-}
 
 func GetKey(length int) string {
 	sec := strconv.FormatInt(time.Now().Unix(), 10)
@@ -72,7 +22,7 @@ func GetKey(length int) string {
 	for i := 0; i < 50; i++ {
 		randStr = Random("smallnumber", randLen)
 		//新增无序集合 所有的key头存在无序集合里面
-		res, err := pool.SAdd(redKey, randStr, exTime).Result()
+		res, err := Pool.SAdd(redKey, randStr, exTime).Result()
 		if err == nil && res > 0 {
 			break
 		}

@@ -2,14 +2,12 @@ package ruoai
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
-	"test/model"
-	"time"
+	"test/model/ruoai"
+	"test/utils"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/jinzhu/gorm"
@@ -49,29 +47,29 @@ func ParseCity(url string, chananme int) ParseResult {
 
 			for key, value := range w3 {
 
-				dpro, err := model.GetProvinceFromRedis(from[0]) //先查省
+				dpro, err := ruoai.GetProvinceFromRedis(from[0]) //先查省
 				if err != nil && err != gorm.ErrRecordNotFound {
 					continue
 				}
 				if dpro["id"] == "" {
-					if model.ProvinceCreate(from[0]) != nil {
+					if ruoai.ProvinceCreate(from[0]) != nil {
 						continue
 					}
-					dpro, err = model.GetProvinceFromRedis(from[0])
+					dpro, err = ruoai.GetProvinceFromRedis(from[0])
 				}
-				dcity, err := model.GetCityFromRedis(from[key+1]) //再查市
+				dcity, err := ruoai.GetCityFromRedis(from[key+1]) //再查市
 				if err != nil && err != gorm.ErrRecordNotFound {
 					continue
 				}
 
 				if dcity["id"] == "" {
 					proid, _ := strconv.Atoi(dpro["id"])
-					if model.CityCreate(from[key+1], proid) != nil {
+					if ruoai.CityCreate(from[key+1], proid) != nil {
 						continue
 					}
 				}
 				url, err = value.GetAttribute("href")
-				model.PutCityData(url)
+				ruoai.PutCityData(url)
 			}
 		}
 
@@ -157,7 +155,7 @@ func GetBoyUrl(url string, chananme int) ParseResult {
 			break
 		}
 
-		Info, _ := Fetch(nextPageurl)
+		Info, _ := utils.Fetch(nextPageurl)
 		fmt.Println("原url为：" + url + "男" + nextPageurl)
 		nextPageurl = ""
 		dom, err := goquery.NewDocumentFromReader(strings.NewReader(string(Info)))
@@ -191,7 +189,7 @@ func GetBoyUrl(url string, chananme int) ParseResult {
 
 	}
 	fmt.Println("返回")
-    
+
 	return pre
 }
 
@@ -244,7 +242,7 @@ func GetGirlUrl(url string, chananme int) ParseResult {
 			break
 		}
 
-		Info, _ := Fetch(nextPageurl)
+		Info, _ := utils.Fetch(nextPageurl)
 		fmt.Println("原url为：" + url + "女" + nextPageurl)
 		nextPageurl = ""
 		dom, err := goquery.NewDocumentFromReader(strings.NewReader(string(Info)))
@@ -294,14 +292,14 @@ func GetMoney(number, unit string) int {
 	return value
 }
 
-func WriteUser(u model.User) {
+func WriteUser(u ruoai.User) {
 
-	dpro, err := model.GetUserFromRedis(strconv.Itoa(u.Id)) //
+	dpro, err := ruoai.GetUserFromRedis(strconv.Itoa(u.Id)) //
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return
 	}
 	if dpro["id"] == "" {
-		if model.UserCreate(u) != nil {
+		if ruoai.UserCreate(u) != nil {
 			return
 		}
 	}
@@ -309,8 +307,8 @@ func WriteUser(u model.User) {
 
 func GetInformation(url string, i int) ParseResult {
 
-	Info, _ := Fetch(url)
-	var user model.User
+	Info, _ := utils.Fetch(url)
+	var user ruoai.User
 	var pre ParseResult
 	dom, err := goquery.NewDocumentFromReader(strings.NewReader(string(Info)))
 	if err != nil {
@@ -345,17 +343,17 @@ func GetInformation(url string, i int) ParseResult {
 			}
 			//性别+学历
 			user.Gender = Info[2]
-			dpro, err := model.GetEducationFromRedis(Info[3]) //
+			dpro, err := ruoai.GetEducationFromRedis(Info[3]) //
 			if err != nil && err != gorm.ErrRecordNotFound {
 				fmt.Println("用户页面数据异常", url)
 				return
 			}
 			if dpro["id"] == "" {
-				if model.EducationCreate(Info[3]) != nil {
+				if ruoai.EducationCreate(Info[3]) != nil {
 					fmt.Println("用户页面数据异常", url)
 					return
 				}
-				dpro, err = model.GetEducationFromRedis(Info[3])
+				dpro, err = ruoai.GetEducationFromRedis(Info[3])
 			}
 			user.Education, err = strconv.Atoi(dpro["id"])
 		})
@@ -379,7 +377,7 @@ func GetInformation(url string, i int) ParseResult {
 		case 0:
 			//居住地
 			if len(values) > 1 {
-				livecity, _ := model.GetCityFromRedis(values[1])
+				livecity, _ := ruoai.GetCityFromRedis(values[1])
 				user.City_code, _ = strconv.Atoi(livecity["id"])
 			}
 		case 1:
@@ -447,17 +445,17 @@ func GetInformation(url string, i int) ParseResult {
 			//职业
 			if len(values) > 1 {
 				if values[1] != "" {
-					dpro, err := model.GetWorkFromRedis(values[1]) //
+					dpro, err := ruoai.GetWorkFromRedis(values[1]) //
 					if err != nil && err != gorm.ErrRecordNotFound {
 						fmt.Println("用户页面数据异常", url)
 						return pre
 					}
 					if dpro["id"] == "" {
-						if model.WorkCreate(values[1]) != nil {
+						if ruoai.WorkCreate(values[1]) != nil {
 							fmt.Println("用户页面数据异常", url)
 							return pre
 						}
-						dpro, err = model.GetWorkFromRedis(values[1])
+						dpro, err = ruoai.GetWorkFromRedis(values[1])
 					}
 					user.Work, err = strconv.Atoi(dpro["id"])
 				}
@@ -465,7 +463,7 @@ func GetInformation(url string, i int) ParseResult {
 		case 9:
 			//家乡
 			if len(values) > 1 {
-				livecity, _ := model.GetCityFromRedis(values[1])
+				livecity, _ := ruoai.GetCityFromRedis(values[1])
 				user.Hometown, _ = strconv.Atoi(livecity["id"])
 			}
 		}
@@ -475,46 +473,10 @@ func GetInformation(url string, i int) ParseResult {
 
 }
 
-var ratelimit = time.Tick(200 * time.Millisecond)
-
-//解析url
-func Fetch(url string) ([]byte, error) {
-	<-ratelimit //等待时间
-	re, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	if re.StatusCode == http.StatusOK {
-		all, err := ioutil.ReadAll(re.Body)
-		if err != nil {
-			return nil, err
-		}
-		return all, nil
-	}
-	defer re.Body.Close()
-
-	return nil, fmt.Errorf("wrong!!")
-}
-
-func DeleteExtraSpace(s string) string {
-	//删除字符串中的多余空格，有多个空格时，仅保留一个空格
-	s1 := strings.Replace(s, "  ", " ", -1)      //替换tab为空格
-	regstr := "\\s{2,}"                          //两个及两个以上空格的正则表达式
-	reg, _ := regexp.Compile(regstr)             //编译正则表达式
-	s2 := make([]byte, len(s1))                  //定义字符数组切片
-	copy(s2, s1)                                 //将字符串复制到切片
-	spc_index := reg.FindStringIndex(string(s2)) //在字符串中搜索
-	for len(spc_index) > 0 {                     //找到适配项
-		s2 = append(s2[:spc_index[0]+1], s2[spc_index[1]:]...) //删除多余空格
-		spc_index = reg.FindStringIndex(string(s2))            //继续在字符串中搜索
-	}
-	return string(s2)
-}
-
 //获取页面信息
 func GetInformation1(url string, chananme int) ParseResult {
 	var pre ParseResult
-	var user model.User
+	var user ruoai.User
 	wd, service := GetDriver(url, Port+chananme, SeleniumPath)
 	defer service.Stop()
 	defer wd.Close()
@@ -572,17 +534,17 @@ func GetInformation1(url string, chananme int) ParseResult {
 
 	if gender_sc[1] != "" {
 
-		dpro, err := model.GetEducationFromRedis(gender_sc[1]) //
+		dpro, err := ruoai.GetEducationFromRedis(gender_sc[1]) //
 		if err != nil && err != gorm.ErrRecordNotFound {
 			fmt.Println("用户页面数据异常", url)
 			return pre
 		}
 		if dpro["id"] == "" {
-			if model.EducationCreate(gender_sc[1]) != nil {
+			if ruoai.EducationCreate(gender_sc[1]) != nil {
 				fmt.Println("用户页面数据异常", url)
 				return pre
 			}
-			dpro, err = model.GetEducationFromRedis(gender_sc[1])
+			dpro, err = ruoai.GetEducationFromRedis(gender_sc[1])
 		}
 		user.Education, err = strconv.Atoi(dpro["id"])
 	}
@@ -609,7 +571,7 @@ func GetInformation1(url string, chananme int) ParseResult {
 		case 0:
 			//居住地
 			if len(values) > 1 {
-				livecity, _ := model.GetCityFromRedis(values[1])
+				livecity, _ := ruoai.GetCityFromRedis(values[1])
 				user.City_code, _ = strconv.Atoi(livecity["id"])
 			}
 		case 1:
@@ -677,17 +639,17 @@ func GetInformation1(url string, chananme int) ParseResult {
 			//职业
 			if len(values) > 1 {
 				if values[1] != "" {
-					dpro, err := model.GetWorkFromRedis(values[1]) //
+					dpro, err := ruoai.GetWorkFromRedis(values[1]) //
 					if err != nil && err != gorm.ErrRecordNotFound {
 						fmt.Println("用户页面数据异常", url)
 						return pre
 					}
 					if dpro["id"] == "" {
-						if model.WorkCreate(values[1]) != nil {
+						if ruoai.WorkCreate(values[1]) != nil {
 							fmt.Println("用户页面数据异常", url)
 							return pre
 						}
-						dpro, err = model.GetWorkFromRedis(values[1])
+						dpro, err = ruoai.GetWorkFromRedis(values[1])
 					}
 					user.Work, err = strconv.Atoi(dpro["id"])
 				}
@@ -695,7 +657,7 @@ func GetInformation1(url string, chananme int) ParseResult {
 		case 9:
 			//家乡
 			if len(values) > 1 {
-				livecity, _ := model.GetCityFromRedis(values[1])
+				livecity, _ := ruoai.GetCityFromRedis(values[1])
 				user.Hometown, _ = strconv.Atoi(livecity["id"])
 			}
 		}

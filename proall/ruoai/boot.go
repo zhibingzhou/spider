@@ -2,7 +2,7 @@ package ruoai
 
 import (
 	"fmt"
-	"test/model"
+	"test/model/ruoai"
 	"test/utils"
 )
 
@@ -24,7 +24,7 @@ func StartRun() {
 	go func() {
 		for {
 
-			value, err := model.GetCityData()
+			value, err := ruoai.GetCityData()
 			if err != nil {
 				fmt.Println("StartRun", err)
 				continue

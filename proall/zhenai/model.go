@@ -14,3 +14,8 @@ func (r Request) Do(chan_number int) ParseResult {
 	pareResult := r.PareFunc(r.Url, chan_number)
 	return pareResult
 }
+
+var (
+	Port         = 9515
+	SeleniumPath = `D:\pc\chromedriver.exe`
+)

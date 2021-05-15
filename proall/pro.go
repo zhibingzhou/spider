@@ -5,6 +5,7 @@ import (
 	"os"
 	"test/proall/pro"
 	"test/proall/ruoai"
+	"test/proall/xinhe"
 	"test/thread"
 	"test/utils"
 )
@@ -24,6 +25,7 @@ const (
 var (
 	pros   pro.Pcstudy
 	ruoais ruoai.Ruoai
+	xinhes xinhe.XinHe
 )
 
 //结构
@@ -41,7 +43,9 @@ func (this *Processor) Register() *Processor {
 
 	this.Calls = map[string]func(){
 		//"51": pros.Boot,
-		"ruoai": ruoais.Boot,
+		//"ruoai": ruoais.Boot,
+		//"zhenai": zhenai.ZhenAiT.Boot,
+		"xinhe": xinhes.Boot,
 	}
 	return this
 }

@@ -14,9 +14,9 @@ type RedisConf struct {
 	DBName int
 }
 
-var head = "all_key"
-var wxhead = "all_key_wx"
-var pool *redis.Client
+var Head = "all_key"
+var WxHead = "all_key_wx"
+var Pool *redis.Client
 var ctx = context.Background()
 
 // redis初始化
@@ -31,12 +31,12 @@ func InitRedis(redisMsg RedisConf) *redis.Client {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	pool = client
+	Pool = client
 	return client
 }
 
 func init() {
-	pool = InitRedis(RedisConf{
+	Pool = InitRedis(RedisConf{
 		Host:   "127.0.0.1",
 		Port:   "6379",
 		Pwd:    "foobared",
@@ -48,7 +48,7 @@ func init() {
 func Delcash() error {
 
 	//拿到key头在集合中的数量
-	num, err := pool.SCard(head).Result()
+	num, err := Pool.SCard(Head).Result()
 	if err != nil {
 		return err
 	}
@@ -56,13 +56,13 @@ func Delcash() error {
 	for i = 0; i < num; i++ {
 
 		//删除一条数据返回被删除的元素，逐个删除，但这个会返回对应元素
-		red_key, err := pool.SPop(head).Result()
+		red_key, err := Pool.SPop(Head).Result()
 
 		if err != nil {
 			return err
 		}
 
-		if pool.Del(red_key).Err() != nil {
+		if Pool.Del(red_key).Err() != nil {
 			return err
 		}
 

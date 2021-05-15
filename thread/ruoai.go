@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"test/model"
+	"test/model/ruoai"
 	"test/utils"
 )
 
@@ -22,7 +23,7 @@ func RuoAiList(page, limit, gender, city, salary, education int, age string) (co
 		offset = limit * (page - 1)
 	}
 
-	var users []model.User
+	var users []ruoai.User
 	rep = make([]map[string]interface{}, 0)
 	db := model.MysqlALL["ruoai"].DB.Table("user")
 
@@ -61,13 +62,13 @@ func RuoAiList(page, limit, gender, city, salary, education int, age string) (co
 
 	for _, value := range users {
 		mapstring := utils.StructToMap(value)
-		citytitle, _ := model.GetCityCodeFromRedis(value.City_code)
+		citytitle, _ := ruoai.GetCityCodeFromRedis(value.City_code)
 		mapstring["City_title"] = citytitle["title"]
-		work_title, _ := model.GetWorkCodeFromRedis(value.Work)
+		work_title, _ := ruoai.GetWorkCodeFromRedis(value.Work)
 		mapstring["Work_title"] = work_title["title"]
-		hometown_title, _ := model.GetCityCodeFromRedis(value.Hometown)
+		hometown_title, _ := ruoai.GetCityCodeFromRedis(value.Hometown)
 		mapstring["Hometown_title"] = hometown_title["title"]
-		education_title, _ := model.GetEducationCodeFromRedis(value.Education)
+		education_title, _ := ruoai.GetEducationCodeFromRedis(value.Education)
 		mapstring["Education_title"] = education_title["title"]
 		time := strings.Split(fmt.Sprintf("%s", mapstring["Birthday_time"]), " ")
 		mapstring["Birthday_time"] = time[0]
@@ -87,22 +88,22 @@ func RuoAiList(page, limit, gender, city, salary, education int, age string) (co
 
 }
 
-func RuoAiProvinceCity() (count int, rep []model.ProvinceCity, err error) {
-	var pro []model.Province
-	var proc []model.ProvinceCity
+func RuoAiProvinceCity() (count int, rep []ruoai.ProvinceCity, err error) {
+	var pro []ruoai.Province
+	var proc []ruoai.ProvinceCity
 	err = model.MysqlALL["ruoai"].DB.Table("province").Find(&pro).Error
 	if err != nil {
 		return 0, rep, err
 	}
 	for _, value := range pro {
-		arraycity, _ := model.GetCityProvinceFromRedis(value.Id)
-		proc = append(proc, model.ProvinceCity{Title: value.Title, City: arraycity})
+		arraycity, _ := ruoai.GetCityProvinceFromRedis(value.Id)
+		proc = append(proc, ruoai.ProvinceCity{Title: value.Title, City: arraycity})
 	}
 	return len(rep), proc, err
 }
 
 func RuoAiCity() (count int, rep []map[string]interface{}, err error) {
-	var pro []model.City
+	var pro []ruoai.City
 	err = model.MysqlALL["ruoai"].DB.Table("city").Find(&pro).Error
 	if err != nil {
 		return 0, rep, err
@@ -113,8 +114,8 @@ func RuoAiCity() (count int, rep []map[string]interface{}, err error) {
 	return len(rep), rep, err
 }
 
-func RuoAiProvince() (count int, rep []model.Province, err error) {
-	var pro []model.Province
+func RuoAiProvince() (count int, rep []ruoai.Province, err error) {
+	var pro []ruoai.Province
 	err = model.MysqlALL["ruoai"].DB.Table("province").Find(&pro).Error
 	if err != nil {
 		return 0, rep, err
@@ -122,8 +123,8 @@ func RuoAiProvince() (count int, rep []model.Province, err error) {
 	return len(rep), pro, err
 }
 
-func GetEducation() (count int, rep []model.Education, err error) {
-	var pro []model.Education
+func GetEducation() (count int, rep []ruoai.Education, err error) {
+	var pro []ruoai.Education
 	err = model.MysqlALL["ruoai"].DB.Table("education").Find(&pro).Error
 	if err != nil {
 		return 0, rep, err
