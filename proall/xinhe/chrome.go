@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"test/utils"
 	"time"
 
 	"github.com/chromedp/cdproto/network"
@@ -26,7 +27,8 @@ func GetVideo(VideoUrl string, film_type int) PareResult {
 
 	dir, err := ioutil.TempDir("", "chromedp-example")
 	if err != nil {
-		panic(err)
+		utils.GVA_LOG.Error(err, VideoUrl)
+		return PareResult{}
 	}
 	defer os.RemoveAll(dir)
 	var Stop chan string
@@ -56,7 +58,8 @@ func GetVideo(VideoUrl string, film_type int) PareResult {
 	// 执行一个空task, 用提前创建Chrome实例
 	// ensure that the browser process is started
 	if err := chromedp.Run(chromeCtx, make([]chromedp.Action, 0, 1)...); err != nil {
-		panic(err)
+		utils.GVA_LOG.Error(err, VideoUrl)
+		return PareResult{}
 	}
 
 	// listen network event
@@ -72,7 +75,7 @@ func GetVideo(VideoUrl string, film_type int) PareResult {
 			chromedp.WaitVisible(`#__next > div.jsx-2684177236 > div > div.jsx-2803742412`, chromedp.BySearch),
 			chromedp.OuterHTML(`/html/body`, &htmls, chromedp.BySearch),
 		); err != nil {
-			fmt.Println(err)
+			utils.GVA_LOG.Error(err, VideoUrl)
 		}
 
 	}()
@@ -83,9 +86,11 @@ func GetVideo(VideoUrl string, film_type int) PareResult {
 		select {
 		case url := <-Stop:
 			PareFilm(htmls, url, film_type, id)
+			utils.GVA_LOG.Debug(url, id)
 			return pre
 		case <-ticker.C:
 			fmt.Println("超时")
+			utils.GVA_LOG.Debug("超时", id)
 			return pre
 		}
 

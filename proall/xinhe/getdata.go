@@ -33,12 +33,30 @@ func GetMovieStart(url string) {
 	}
 
 	dom.Find(".jsx-2684177236 > .jsx-1712581126 >.jsx-478404003> .jsx-1286128993").Each(func(i int, t *goquery.Selection) {
+		isyear := false
 		istype := false
 		t.Find(".jsx-1913849877").Each(func(i int, t *goquery.Selection) {
 			if t.Text() == "年份" {
+				isyear = true
+			}
+			if t.Text() == "类型" {
 				istype = true
 			}
 		})
+		if isyear {
+			t.Find("a").Each(func(i int, t *goquery.Selection) {
+
+				typename := t.Text()
+				fmt.Println(typename)
+
+				herf, _ := t.Attr("href")
+				fmt.Println(herf)
+
+				if typename != "全部" {
+					xinhe.PuttypeData(herf)
+				}
+			})
+		}
 		if istype {
 			t.Find("a").Each(func(i int, t *goquery.Selection) {
 
@@ -53,13 +71,12 @@ func GetMovieStart(url string) {
 					if filmType["id"] == "" {
 						xinhe.TypeCreate(typename)
 					}
-					xinhe.PuttypeData(herf)
 				}
 
 			})
 		}
 		istype = false
-
+		isyear = false
 	})
 }
 
@@ -90,7 +107,8 @@ func FindScr(url string, video_type int) PareResult {
 	// 执行一个空task, 用提前创建Chrome实例
 	// ensure that the browser process is started
 	if err := chromedp.Run(chromeCtx, make([]chromedp.Action, 0, 1)...); err != nil {
-		panic(err)
+		utils.GVA_LOG.Error(err, url)
+		return pre
 	}
 
 	var buf string
@@ -115,6 +133,7 @@ func FindScr(url string, video_type int) PareResult {
 		},
 	); err != nil {
 		log.Fatal(err)
+		utils.GVA_LOG.Error(err)
 	}
 
 	dom, err := goquery.NewDocumentFromReader(strings.NewReader(buf))
@@ -147,15 +166,73 @@ func FindScr(url string, video_type int) PareResult {
 			}
 		})
 	})
-
+	utils.GVA_LOG.Debug(url, "拿到影片数：", len(pre.Requests))
 	return pre
 }
 
 func CreateFilm(Info []string, video_type int, herf string) {
 
 	if len(Info) < 9 {
-		fmt.Println("数据不全")
-		utils.GVA_LOG.Debug("数据不全", herf)
+
+		if len(Info) != 7 {
+			fmt.Println("数据不全")
+			utils.GVA_LOG.Debug("数据不全", herf)
+			return 
+		}
+		var film xinhe.Film
+		var film_type xinhe.Film_type
+		video_id := strings.Split(Info[0], "/")
+		if len(video_id) > 2 {
+			film.Id, _ = strconv.Atoi(video_id[len(video_id)-1])
+		}
+
+		film.Url_image = Info[1]
+		country := strings.Split(utils.DeleteExtraSpace(Info[2]), "/")
+		var str_country string
+		for _, value := range country {
+			if value == "" {
+				continue
+			}
+			coun := strings.ReplaceAll(value, " ", "")
+			cou, _ := xinhe.GetCountryFromRedis(coun)
+			if cou["id"] == "" {
+				err := xinhe.CountryCreate(coun)
+				if err != nil {
+					fmt.Println("CreateFilm,Error", err)
+					continue
+				}
+				cou, _ = xinhe.GetCountryFromRedis(coun)
+			}
+			str_country += cou["id"] + ","
+
+		}
+
+		film.Country = str_country
+
+		film.First_name = Info[4]
+
+		film.Year, _ = strconv.Atoi(Info[5])
+		film.En_name = Info[6]
+		film.Video_type = video_type
+		film_types := strings.Split(utils.DeleteExtraSpace(Info[3]), "/")
+		films, _ := xinhe.GetFilmByIdRedis(video_id[len(video_id)-1])
+		if films["id"] == "" {
+			err := xinhe.FilmCreate(film)
+			if err != nil {
+				fmt.Println("CreateFilm,Err", err)
+			}
+		}
+
+		for _, value := range film_types {
+			rtype, _ := xinhe.GetFilmTypeFromRedis(value)
+			film_type.Type_id, _ = strconv.Atoi(rtype["id"])
+			film_type.Film_id = film.Id
+			err := xinhe.FilmTypeCreate(film_type.Film_id, film_type.Type_id)
+			if err != nil {
+				fmt.Println("CreateFilm,Err", err)
+			}
+		}
+
 		return
 	}
 
@@ -173,7 +250,7 @@ func CreateFilm(Info []string, video_type int, herf string) {
 		if value == "" {
 			continue
 		}
-		coun := utils.DeleteExtraSpace(value)
+		coun := strings.ReplaceAll(value, " ", "")
 		cou, _ := xinhe.GetCountryFromRedis(coun)
 		if cou["id"] == "" {
 			err := xinhe.CountryCreate(coun)

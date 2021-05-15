@@ -15,11 +15,10 @@ import (
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
-
 )
 
 func main() {
-	//model.Delcash()
+	model.Delcash()
 	go proall.NewProcessor().Register().Boot()
 	router.Router.Run(":8082")
 }

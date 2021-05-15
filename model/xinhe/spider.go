@@ -3,6 +3,7 @@ package xinhe
 import (
 	"fmt"
 	"test/model"
+	"test/utils"
 
 	"github.com/go-redis/redis"
 )
@@ -12,7 +13,10 @@ func PuttypeData(url string) error {
 
 	// 添加有序集合 插入成功为1 插入失败为0,去重用
 	value, err := model.Pool.ZAdd("xinhe_type_spider", redis.Z{Score: 10, Member: url}).Result()
-	fmt.Println("xinhe,类型url添加", url, err)
+	fmt.Println("xinhe,类型url添加", url)
+	if err != nil {
+		utils.GVA_LOG.Debug("PuttypeData", err)
+	}
 
 	if value == 1 { //说明没有这个key
 		onlyid := model.WxHead + model.GetKey(16)
