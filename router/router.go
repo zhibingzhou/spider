@@ -13,9 +13,10 @@ func init() {
 	Router = gin.New()
 	//静态文件路径，一定需要
 	Router.LoadHTMLGlob("view/*")
-	Router.LoadHTMLFiles("./view/index.html", "./view/city.html", "./view/user.html", "./view/work.html", "./view/province.html", "./view/indexvue.html")
+	Router.LoadHTMLFiles("./view/index.html", "./view/city.html", "./view/user.html", "./view/work.html", "./view/province.html", "./view/indexvue.html", "./view/videoindex.html")
 	Router.Static("/layui", "./layui")
 	Router.GET("/home", controller.Home)
+	Router.GET("/video", controller.Video)
 
 	//API接口 若爱
 	RuoAi := Router.Group("/ruoai")
@@ -29,5 +30,10 @@ func init() {
 	RuoAi.GET("/province_list", controller.RuoAiProvinceList)
 	//省份和城市
 	RuoAi.GET("/provinceCity_list", controller.RuoAiProvinceCityList)
+
+	//API接口 星河
+	XinHe := Router.Group("/xinhe")
+	XinHe.POST("/list_xinhe", controller.XinHeList)
+	XinHe.POST("/list_type", controller.XinHeType)
 
 }

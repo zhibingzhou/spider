@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link href="https://vjs.zencdn.net/7.4.1/video-js.css" rel="stylesheet">
+    <script src='https://vjs.zencdn.net/7.4.1/video.js'></script>
+    <title>{{.title}}</title>
+</head>
+
+<body>
+    <div id="app">
+        <div>
+
+            <div class="search-term">
+                <el-form :inline="true" :model="searchInfo" class="demo-form-inline">
+
+                    <el-form-item label="性别">
+                        <el-select placeholder="请选择" v-model="searchInfo.sex">
+                            <el-option :value="1" label="男"></el-option>
+                            <el-option :value="0" label="女"></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="薪水">
+                        <el-select placeholder="请选择" v-model="searchInfo.salary">
+                            <el-option :value="0" label="5千以下"></el-option>
+                            <el-option :value="1" label="5千-1万"></el-option>
+                            <el-option :value="2" label="1万-2万"></el-option>
+                            <el-option :value="3" label="2万以上"></el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="电影类型">
+                        <el-select filterable clearable placeholder="请输入类型" v-model="searchInfo.film_type">
+                            <el-option :key="item.id" :label="item.type_name" :value="item.id"
+                                v-for="item in educationData">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="年龄">
+                        <el-input v-model="searchInfo.age" placeholder="最大年龄"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="当前城市">
+                        <el-input v-model="cityName"></el-input>
+                    </el-form-item>
+
+
+                    <el-form-item>
+                        <el-button @click="onSubmit" type="primary">查询</el-button>
+                        <el-button @click="citychoose" type="primary">城市选择</el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+
+
+            <el-table :data="tableData" ref="multipleTable" stripe style="width: 100%" tooltip-effect="dark">
+                <el-table-column label="ID" prop="Id"></el-table-column>
+                <el-table-column label="影片图片" width="260px" height="150px">
+                    <template slot-scope="scope">
+                        <el-image style="width: 260px; height: 150px" :src="scope.row.Url_image" fit="contain"
+                            :preview-src-list="getImageList(scope.row.Url_image)" />
+                    </template>
+                </el-table-column>
+                <el-table-column label="视频地址" width="260px" height="150px">
+                    <template slot-scope="scope">
+                        <video id="myVideo" ref="videoPlayer" class="video-js vjs-default-skin vjs-big-play-centered"
+                            controls preload="auto" data-setup='{}' style='width: 100%;height: 60%'
+                            :poster="scope.row.Url_image">
+                            <source id="source" :src="scope.row.Video_url">
+                        </video>
+                    </template>
+                </el-table-column>
+                <el-table-column label="中文名" prop="En_name"></el-table-column>
+                <el-table-column label="别名" prop="First_name"></el-table-column>
+                <el-table-column label="分数" prop="Score"></el-table-column>
+                <el-table-column :show-overflow-tooltip='true' label="展示名称" prop="Second_name"></el-table-column>
+                <el-table-column label="时间" prop="Show_time"></el-table-column>
+                <el-table-column :show-overflow-tooltip='true' label="简介" prop="Title"></el-table-column>
+                <el-table-column label="年份" prop="Year"></el-table-column>
+                <el-table-column label="婚姻" prop="Married"></el-table-column>
+            </el-table>
+
+            <el-pagination :current-page="searchInfo.page" :page-size="searchInfo.pageSize"
+                :page-sizes="[10 , 20, 50, 100]" :style="{ float: 'right', padding: '20px' }" :total="searchInfo.total"
+                @current-change="handleCurrentChange" @size-change="handleSizeChange"
+                layout="total, sizes, prev, pager, next, jumper"></el-pagination>
+        </div>
+
+        <el-dialog :visible.sync="cityDiolag" custom-class="user-dialog" :title="dialogTitlethis" width="1000px">
+            <el-form>
+                {{range .all}}
+                <el-form-item label="" label-width="10px" prop="pay_id">
+                    <a> {{.Title}} </a>
+                    {{range .City}}
+                    <el-link type="primary" @click="handleClick({{.Id}})" value="{{.Id}}">
+                        {{.Title}}
+                    </el-link>
+                    {{end}}
+                </el-form-item>
+                {{end}}
+
+            </el-form>
+        </el-dialog>
+
+
+    </div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+
+    new Vue({
+        el: '#app',
+
+        data: {
+            visible: false,
+            searchInfo: {
+                sex: 0,
+                city: 0,
+                pageSize: 10,
+                page: 1,
+                salary: '',
+                film_type: '',
+                age: '',
+                total: 0,
+            },
+            player: null,
+            player: null,
+
+            cityName: '所有城市',
+            educationData: [],
+            tableData: [],
+            cityDiolag: false,
+            dialogTitlethis: "城市选择",
+        },
+        mounted: function () {
+            this.$nextTick(function () {
+                // Code that will run only after the
+                // entire view has been rendered
+                this.init()
+            })
+        },
+        methods: {
+            init() {
+                this.player = videojs(this.$refs.videoPlayer, {
+                    //确定播放器是否具有用户可以与之交互的控件。没有控件，启动视频播放的唯一方法是使用autoplay属性或通过Player API。
+                    controls: true,
+                    //自动播放属性,muted:静音播放
+                    autoplay: false,
+                    //建议浏览器是否应在<video>加载元素后立即开始下载视频数据。
+                    preload: "none",
+                    //设置视频播放器的显示宽度（以像素为单位）
+                    width: "260px",
+                    //设置视频播放器的显示高度（以像素为单位）
+                    height: "150px",
+                    hls: {
+                        withCredentials: true
+                    },
+                    controlBar: {
+                        fullscreenToggle: true
+                    }
+                })
+            },
+            
+            beforeDestroy() {
+                this.player = null
+
+            },
+
+            async handleClick(val) {
+                this.searchInfo.city = val
+                var result = await this.getData()
+                if (result.code == 200) {
+                    this.tableData = result.data
+                    this.searchInfo.total = result.count
+                    if (this.tableData.length > 0) {
+                        this.cityName = this.tableData[0].City_title
+                    }
+                }
+                this.cityDiolag = false
+            },
+            citychoose() {
+                this.cityDiolag = true
+                console.log("hgere")
+            },
+            getImageList(url) {
+                var imgelist = [url]
+                return imgelist
+            },
+            async onSubmit() {
+                console.log("onSubmit")
+                var result = await this.getData()
+                if (result.code == 200) {
+                    this.tableData = result.data
+                    this.searchInfo.total = result.count
+                }
+            },
+            async getData() {
+                var data = Object
+                await axios.post('/xinhe/list_xinhe', this.searchInfo)
+                    .then(function (response) {
+                        data = response.data
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                console.log("getData", data)
+                return data
+            },
+            // 
+            async getList_type() {
+                var data = Object
+                await axios.post('/xinhe/list_type', {})
+                    .then(function (response) {
+                        data = response.data
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                console.log("getList_type", data)
+                return data
+            },
+            //分页
+            async handleSizeChange(val) {
+                this.searchInfo.pageSize = val
+                var result = await this.getData()
+                if (result.code == 200) {
+                    this.tableData = result.data
+                    this.searchInfo.total = result.count
+                }
+            },
+            async handleCurrentChange(val) {
+                this.searchInfo.page = val
+                var result = await this.getData()
+                if (result.code == 200) {
+                    this.tableData = result.data
+                    this.searchInfo.total = result.count
+                }
+            },
+        },
+        async created() {
+            var result = await this.getData()
+            if (result.code == 200) {
+                this.tableData = result.data
+                this.searchInfo.total = result.count
+            }
+            var result = await this.getList_type()
+            if (result.code == 200) {
+                this.educationData = result.data
+            }
+        }
+
+
+
+    })
+</script>
+
+<style>
+    .video-js .vjs-tech {
+        position: relative !important;
+    }
+</style>
+
+
+</html>

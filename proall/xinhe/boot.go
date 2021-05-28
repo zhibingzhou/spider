@@ -2,6 +2,7 @@ package xinhe
 
 import (
 	"fmt"
+	"test/model/xinhe"
 )
 
 type XinHe struct {
@@ -9,10 +10,13 @@ type XinHe struct {
 
 func (x XinHe) Boot() {
 
+	for {
+
+	}
 	// GetVideo("https://xinghe.tv/play/26979204", 1)
 	//写入任务,爬电影
 
-	//GetMovieStart("https://xinghe.tv/movie")
+	GetMovieStart("https://xinghe.tv/movie")
 
 	ManagerXinHe = NewXinHeChannel(4)
 	ManagerXinHe.Run()
@@ -31,12 +35,12 @@ func (x XinHe) Boot() {
 	}()
 
 	for {
-		// xh, err := xinhe.GettypeData()
-		// if err != nil || len(xh) < 1 {
-		// 	fmt.Println("结束任务")
-		// 	break
-		// }
-		xh := []string{"/movie?type=movie&genre=%E5%85%A8%E9%83%A8&keyword=&region=all&sort=hot&year=2021"}
+		xh, err := xinhe.GettypeData()
+		if err != nil || len(xh) < 1 {
+			fmt.Println("结束任务")
+			break
+		}
+
 		for _, value := range xh {
 			if value != "" {
 				ManagerXinHe.Request <- Request{Url: value, PareFunc: FindScr, Type: 1}
