@@ -36,7 +36,7 @@ func RuoAiList(c *gin.Context) {
 	var ruoai RuoaiReponseList
 	_ = c.ShouldBindJSON(&ruoai)
 
-	count, d, err := thread.RuoAiList(ruoai.Page, ruoai.PageSize, ruoai.Sex, ruoai.City, ruoai.Salary, ruoai.Education ,ruoai.Age )
+	count, d, err := thread.EsRuoAiList(ruoai.Page, ruoai.PageSize, ruoai.Sex, ruoai.City, ruoai.Salary, ruoai.Education ,ruoai.Age )
 	if err != nil {
 		Fail(d, c)
 		return

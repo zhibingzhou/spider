@@ -13,12 +13,13 @@ type Mysql struct {
 func init() {
 	MysqlALL = make(map[string]Mysql)
 	MysqlALL["ruoai"] = Mysql{}
-	MysqlALL["zhenai"] = Mysql{}
-	MysqlALL["xinhe"] = Mysql{}
+	// MysqlALL["zhenai"] = Mysql{}
+	// MysqlALL["xinhe"] = Mysql{}
 	for key, _ := range MysqlALL {
 		db := ReloadConfSQL("", key)
 		MysqlALL[key] = Mysql{DB: db}
 	}
+
 }
 
 func (m Mysql) Trans(sqlArr []string) error {

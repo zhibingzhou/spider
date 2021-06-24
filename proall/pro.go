@@ -5,6 +5,7 @@ import (
 	"os"
 	"test/proall/pro"
 	"test/proall/ruoai"
+	"test/proall/sezhan"
 	"test/proall/xinhe"
 	"test/thread"
 	"test/utils"
@@ -23,9 +24,10 @@ const (
 )
 
 var (
-	pros   pro.Pcstudy
-	ruoais ruoai.Ruoai
-	xinhes xinhe.XinHe
+	pros    pro.Pcstudy
+	ruoais  ruoai.Ruoai
+	xinhes  xinhe.XinHe
+	sezhans sezhan.SeZhan
 )
 
 //结构
@@ -45,7 +47,8 @@ func (this *Processor) Register() *Processor {
 		//"51": pros.Boot,
 		//"ruoai": ruoais.Boot,
 		//"zhenai": zhenai.ZhenAiT.Boot,
-		"xinhe": xinhes.Boot,
+		//"xinhe": xinhes.Boot,
+		"sezhan": sezhans.Boot,
 	}
 	return this
 }

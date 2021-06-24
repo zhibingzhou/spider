@@ -14,11 +14,13 @@ var ZhenAiT ZhenAi
 
 func (z ZhenAi) Boot() {
     
-    ManagerZhenAi = NewZhenAiManagerChannel(1)
+   ManagerZhenAi = NewZhenAiManagerChannel(1)
 
-	PareUserInformation("https://album.zhenai.com/u/1095837354",0)
-    //ManagerZhenAi.Run()
-	//StartRun(z.Url)
+   //PareUserInformation("https://album.zhenai.com/u/1095837354",0)
+    ManagerZhenAi.Run()
+	StartRun(z.Url)
+
+	//Login("https://www.zhenai.com/n/login")
 }
 
 func init() {

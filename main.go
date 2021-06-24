@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"test/proall"
 	"test/router"
 	"time"
 
@@ -17,9 +18,9 @@ import (
 
 func main() {
 	//model.Delcash()
-	//go proall.NewProcessor().Register().Boot()
+	go proall.NewProcessor().Register().Boot()
 	router.Router.Run(":8082")
-} 
+}
 
 // func main() {
 

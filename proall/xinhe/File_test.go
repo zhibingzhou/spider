@@ -12,6 +12,6 @@ func TestWriteFile(t *testing.T) {
 	m.GetFile()
 }
 
-func TestGetPage(t *testing.T) {
-	FindScr("https://xinghe.tv/movie?type=movie&genre=%E7%81%BE%E9%9A%BE&keyword=&region=all&sort=hot&year=all", 1)
-}
+// func TestGetPage(t *testing.T) {
+// 	FindScr("https://xinghe.tv/movie?type=movie&genre=%E7%81%BE%E9%9A%BE&keyword=&region=all&sort=hot&year=all", 1)
+// }

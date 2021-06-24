@@ -177,7 +177,7 @@ func CreateFilm(Info []string, video_type int, herf string) {
 		if len(Info) != 7 {
 			fmt.Println("数据不全")
 			utils.GVA_LOG.Debug("数据不全", herf)
-			return 
+			return
 		}
 		var film xinhe.Film
 		var film_type xinhe.Film_type
